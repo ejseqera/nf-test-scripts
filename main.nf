@@ -1,17 +1,18 @@
-process CREATE_FILE {
+process MOVE_FILE {
      
-    output:
-        path("*.txt"), emit: outfile
+    output: 
+        path "renamedtest.txt"
 
     """
     touch test.txt
+    mv test.txt renamedtest.txt
     """
 }
 
-process MOVE_FILE {
+process MOVE_FILE_DIR {
 
     output:
-        path("testdir"), type: dir, emit: outfolder 
+        path("testdir"), type: 'dir', emit: outfolder 
     """
     mkdir -p testdir
     touch test.txt
@@ -20,6 +21,6 @@ process MOVE_FILE {
 }
 
 workflow {
-    CREATE_FILE()
     MOVE_FILE()
+    MOVE_FILE_DIR()
 }
