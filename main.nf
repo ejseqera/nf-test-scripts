@@ -1,26 +1,8 @@
-process MOVE_FILE {
-     
-    output: 
-        path "renamedtest.txt"
+nextflow.enable.dsl=2
 
-    """
-    touch test.txt
-    mv test.txt renamedtest.txt
-    """
-}
-
-process MOVE_FILE_DIR {
-
-    output:
-        path("testdir"), type: 'dir', emit: outfolder 
-    """
-    mkdir -p testdir
-    touch test.txt
-    mv test.txt testdir/
-    """
-}
+include { sayHello } from "./hello/main.nf"
 
 workflow {
-    MOVE_FILE()
-    MOVE_FILE_DIR()
+    greetings_ch = Channel.of("Hola1", "Hola2", "Hola3")
+    sayHello(greetings_ch)
 }
