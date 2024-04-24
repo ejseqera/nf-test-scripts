@@ -1,26 +1,29 @@
-process MOVE_FILE {
-     
+process STAGE_FILE {
+    input:
+        path input
+
     output: 
-        path "renamedtest.txt"
+        path "renamed_test.txt"
 
     """
-    touch test.txt
-    mv test.txt renamedtest.txt
+    mv "$input" renamed_test.txt
     """
 }
 
-process MOVE_FILE_DIR {
+process MOVE_FILE {
+    input:
+        path input
 
     output:
-        path("testdir"), type: 'dir', emit: outfolder 
+        path "outfile.txt", emit: outfile
     """
-    mkdir -p testdir
-    touch test.txt
-    mv test.txt testdir/
+    cp "$input" outfile.txt
     """
 }
 
 workflow {
-    MOVE_FILE()
-    MOVE_FILE_DIR()
+    remote_file = params.remoteFile ? Channel.fromPath(params.remoteFile).collect() : Channel.empty()
+    STAGE_FILE(remote_file)
+    ch_moved = MOVE_FILE(remote_file)
+    ch_moved.view()
 }
