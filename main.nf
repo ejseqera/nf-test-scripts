@@ -22,8 +22,6 @@ process MOVE_FILE {
 }
 
 workflow {
-    remote_file = params.remoteFile ? Channel.fromPath(params.remoteFile).collect() : Channel.empty()
-    STAGE_FILE(remote_file)
-    ch_moved = MOVE_FILE(remote_file)
-    ch_moved.view()
+    values = Channel.of('a', 'b')
+    values.collectFile(name: "file.txt", storeDir: params.outdir, sort: false, newLine: true)
 }
