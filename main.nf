@@ -5,7 +5,7 @@ process foo {
 
   script:
     """
-    echo "The value of TOKEN_VALUE is: $TOKEN_VALUE"
+    echo "The value of TOWER_ACCESS_TOKEN is: $TOWER_ACCESS_TOKEN"
     """
 }
 
@@ -17,7 +17,7 @@ process test_cli {
     """
     tw \\
         --url=https://api.cloud.seqera.io \\
-        --access-token=$TOKEN_VALUE \\
+        --access-token=$TOWER_ACCESS_TOKEN \\
         workspaces \\
         list \\
         --organization=scidev
