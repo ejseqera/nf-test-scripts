@@ -9,6 +9,20 @@ process foo {
     """
 }
 
+process test_cli {
+    container 'seqeralabs/nf-aggregate:tower-cli-0.9.0--2cb0f2e9d85d026b'
+
+    script:
+    """
+    tw \\
+        --url=https://api.cloud.seqera.io \\
+        --access-token=\$TOKEN_VALUE \\
+        workspaces \\
+        list \\
+        --organization=scidev
+    """
+}
+
 workflow {
   foo()
 }
