@@ -1,12 +1,14 @@
-process foo {
-    echo true
+#!/usr/bin/env nextflow
 
-    script:
-    '''
-    echo $TOKEN_VALUE
-    '''
+process foo {
+  debug true
+
+  script:
+    """
+    echo "The value of TOKEN_VALUE is: $TOKEN_VALUE"
+    """
 }
 
-workflow (
-    foo
-)
+workflow {
+  foo()
+}
