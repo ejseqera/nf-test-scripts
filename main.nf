@@ -17,7 +17,7 @@ process test_cli {
     """
     tw \\
         --url=https://api.cloud.seqera.io \\
-        --access-token=\$TOKEN_VALUE \\
+        --access-token=$TOKEN_VALUE \\
         workspaces \\
         list \\
         --organization=scidev
