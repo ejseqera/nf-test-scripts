@@ -7,3 +7,6 @@ process foo {
     '''
 }
 
+workflow (
+    foo
+)
