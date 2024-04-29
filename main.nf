@@ -11,7 +11,7 @@ process foo {
 
 process test_cli {
     debug true
-    container 'seqeralabs/nf-aggregate:tower-cli-0.9.0--2cb0f2e9d85d026b'
+    container 'quay.io/seqeralabs/nf-aggregate:tower-cli-0.9.0--2cb0f2e9d85d026b'
 
     script:
     """
