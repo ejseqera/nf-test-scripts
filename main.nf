@@ -1,27 +1,8 @@
-process STAGE_FILE {
-    input:
-        path input
+#!/usr/bin/env nextflow
 
-    output: 
-        path "renamed_test.txt"
-
-    """
-    mv "$input" renamed_test.txt
-    """
-}
-
-process MOVE_FILE {
-    input:
-        path input
-
-    output:
-        path "outfile.txt", emit: outfile
-    """
-    cp "$input" outfile.txt
-    """
-}
+include { COLLECT_FILES  } from './subworkflows/collect.nf'
 
 workflow {
-    values = Channel.of('a', 'b')
-    values.collectFile(name: "file.txt", storeDir: params.outdir, sort: false, newLine: true)
+    ch_collect = Channel.of('alpha', 'beta', 'gamma')
+    COLLECT_FILES(ch_collect, params.outdir)
 }
