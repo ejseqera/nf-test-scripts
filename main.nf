@@ -3,6 +3,6 @@
 include { COLLECT_FILES  } from './subworkflows/collect.nf'
 
 workflow {
-    Channel.of('alpha', 'beta', 'gamma')
-    .collectFile(name: 'combined.txt', sort: true, storeDir: "${params.outdir}/combined")
+    values = Channel.of('a', 'b')
+    values.collectFile(name: "file.txt", storeDir: "${params.outdir}", sort: false, newLine: true)
 }
