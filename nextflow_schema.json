@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "https://raw.githubusercontent.com/./master/nextflow_schema.json",
+  "title": ". pipeline parameters",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "regular_input": {
+      "type": "string",
+      "default": "some_file.csv",
+      "pattern": "^\\S+\\.csv$",
+      "format": "file-path",
+      "mimetype": "text/csv"
+    },
+    "regex_input": {
+      "type": "string",
+      "default": "s3://scidev-eu-west-1/file.csv",
+      "pattern": "^s3:\\/\\/scidev-eu-west-1\\/[^\\/]+\\.csv$",
+      "format": "file-path",
+      "mimetype": "text/csv"
+    }
+  },
+  "required": ["regular_input", "regex_input"]
+}
