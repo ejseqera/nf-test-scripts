@@ -8,17 +8,21 @@
     "regular_input": {
       "type": "string",
       "default": "some_file.csv",
+      "format": "file-path",
+      "mimetype": "text/csv"
+    },
+    "regex_input_1": {
+      "type": "string",
       "pattern": "^\\S+\\.csv$",
       "format": "file-path",
       "mimetype": "text/csv"
     },
-    "regex_input": {
+    "regex_input_2": {
       "type": "string",
-      "default": "s3://scidev-eu-west-1/file.csv",
-      "pattern": "^s3:\\/\\/scidev-eu-west-1\\/[^\\/]+\\.csv$",
+      "pattern": "^s3:\\/\\/scidev-testing\\/[^\\/]+\\.csv$",
       "format": "file-path",
       "mimetype": "text/csv"
     }
   },
-  "required": ["regular_input", "regex_input"]
+  "required": ["regular_input", "regex_input_1", "regex_input_2"]
 }
