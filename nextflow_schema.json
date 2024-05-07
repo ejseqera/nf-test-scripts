@@ -19,7 +19,7 @@
     },
     "regex_input_2": {
       "type": "string",
-      "pattern": "^s3:\\/\\/scidev-testing\\/[^\\/]+\\.csv$",
+      "pattern": "^s3:\\/\\/scidev-eu-west-1\\/[^\\/]+\\.csv$",
       "format": "file-path",
       "mimetype": "text/csv"
     }
