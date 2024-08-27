@@ -1,26 +1,24 @@
-process MOVE_FILE {
-     
-    output: 
-        path "renamedtest.txt"
-
+pprocess mkfile {
+    debug true
+    output:
+        path "test.txt"
     """
-    touch test.txt
-    mv test.txt renamedtest.txt
+    echo "hello world" > test.txt
     """
 }
 
-process MOVE_FILE_DIR {
-
+process mvfile {
+    debug true
+    input:
+        path infile
     output:
-        path("testdir"), type: 'dir', emit: outfolder 
+        path "outfile.txt"
+    publishDir params.outdir
     """
-    mkdir -p testdir
-    touch test.txt
-    mv test.txt testdir/
+    mv $infile outfile.txt
     """
 }
 
 workflow {
-    MOVE_FILE()
-    MOVE_FILE_DIR()
+    mkfile | mvfile
 }
