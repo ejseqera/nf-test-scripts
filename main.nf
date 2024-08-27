@@ -1,4 +1,4 @@
-pprocess mkfile {
+process mkfile {
     debug true
     output:
         path "test.txt"
