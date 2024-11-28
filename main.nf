@@ -1,26 +1,17 @@
-process MOVE_FILE {
-     
-    output: 
-        path "renamedtest.txt"
+#!/usr/bin/env nextflow
 
-    """
-    touch test.txt
-    mv test.txt renamedtest.txt
-    """
-}
+process generateTag {
+    tag "${samples}"
 
-process MOVE_FILE_DIR {
+    input:
+    val samples
 
-    output:
-        path("testdir"), type: 'dir', emit: outfolder 
+    script:
     """
-    mkdir -p testdir
-    touch test.txt
-    mv test.txt testdir/
+    echo "Processing sample: ${samples}"
     """
 }
-
 workflow {
-    MOVE_FILE()
-    MOVE_FILE_DIR()
+    samples = Channel.of("BRD1_S1, Homo_sapiens.10__with--invalid__chars")
+    generateTag(samples)
 }
