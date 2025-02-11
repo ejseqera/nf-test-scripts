@@ -1,17 +1,17 @@
 #!/usr/bin/env nextflow
 
-process generateTag {
-    tag "${samples}"
-
-    input:
-    val samples
+process echoStuff {
+    publishDir params.outDir
+    
+    output:
+    path 'output.txt'
 
     script:
     """
-    echo "Processing sample: ${samples}"
+    echo "Hello World" > output.txt
     """
 }
+
 workflow {
-    samples = Channel.of("BRD1_S1, Homo_sapiens.10__with--invalid__chars")
-    generateTag(samples)
+    echoStuff()
 }
