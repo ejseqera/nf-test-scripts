@@ -1,20 +1,29 @@
 #!/usr/bin/env nextflow
 
 // Create a simple process that generates a text file
-process GENERATE_TEXT {
-    publishDir params.outdir, mode: 'copy'
+
+process FASTQC {
+    tag "FASTQC on $sample_id"
+    conda 'bioconda::fastqc=0.12.1'
+    publishDir params.outdir, mode:'copy'
+
+    input:
+    tuple val(sample_id), path(reads)
 
     output:
-    path 'output.txt'
+    path "fastqc_${sample_id}_logs"
 
     script:
     """
-    echo "Hello World" > output.txt
+    mkdir -p fastqc_${sample_id}_logs
+    fastqc -o fastqc_${sample_id}_logs ${reads}
     """
 }
 
 workflow {
-    GENERATE_TEXT()
+    read_pairs_ch = channel.fromFilePairs( params.reads, checkIfExists: true ) 
+
+    FASTQC(read_pairs_ch)
 }
 
 workflow.onComplete {
@@ -28,7 +37,7 @@ workflow.onComplete {
             gpu: 0,
             cpu: 2,
             memory: 2048,
-            mountData: ["s3://1000genomes"],
+            mountData: [params.outdir],
         ]
     ]
 
