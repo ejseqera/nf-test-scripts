@@ -2,17 +2,24 @@ process COPY_FILES {
     input:
         path files
     output:
-        path output
+        path("outdir", type: 'dir')
+    script:
     """
-    cp $files $output
+    mkdir -p outdir
+    for f in ${files}; do
+        cp \$f outdir/
+    done
     """
 }
 
 process LIST_FILES {
     input:
         path files
+
+    output:
+        path "out", type: 'dir'
     """
-    echo $files
+    cp -rL $files out
     """
 }
 
