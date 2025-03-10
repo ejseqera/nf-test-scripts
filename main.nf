@@ -1,3 +1,13 @@
+process COPY_FILES {
+    input:
+        path files
+    output:
+        path output
+    """
+    cp $files $output
+    """
+}
+
 process LIST_FILES {
     input:
         path files
@@ -8,5 +18,6 @@ process LIST_FILES {
 
 workflow {
     input_ch = Channel.fromPath(params.input).collect()
-    LIST_FILES(input_ch)
+    output_ch = COPY_FILES(input_ch)
+    LIST_FILES(output_ch)
 }
