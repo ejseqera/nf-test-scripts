@@ -1,30 +1,34 @@
-process COPY_FILES {
+process a {
+    debug true
     input:
-        path files
+        path infile
     output:
-        path("outdir", type: 'dir')
+        path "test.txt", emit: outfile
     script:
     """
-    mkdir -p outdir
-    for f in ${files}; do
-        cp \$f outdir/
-    done
+    cat $infile || echo "input file $infile not found"
+    echo "hello world!" > test.txt
+    cat test.txt
     """
 }
 
-process LIST_FILES {
+process b {
+    publishDir "${params.outdir}"
+    debug true
     input:
-        path files
-
+        path outfile
     output:
-        path "out", type: 'dir'
+        path "publishmove", emit: publishmove
+        path "publishnew", emit: publishnew
+    script:
     """
-    cp -rL $files out
+    cat $outfile || echo "input file $outfile not found"
+    mv $outfile ./publishmove
+    cat ./publishmove
+    echo "test" > ./publishnew
     """
 }
 
 workflow {
-    input_ch = Channel.fromPath(params.input).collect()
-    output_ch = COPY_FILES(input_ch)
-    LIST_FILES(output_ch)
+    a(params.infile) | b
 }
