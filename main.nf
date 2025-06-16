@@ -1,26 +1,29 @@
-process MOVE_FILE {
-     
-    output: 
-        path "renamedtest.txt"
+process READ_FILE {
+
+    input:
+        path input
+    
+    output:
+        stdout
 
     """
-    touch test.txt
-    mv test.txt renamedtest.txt
+    echo "Reading file: $input"
+    cat $input
     """
 }
 
-process MOVE_FILE_DIR {
+process WRITE_FILE {
+    
+    publishDir params.outdir, mode: 'copy'
 
     output:
-        path("testdir"), type: 'dir', emit: outfolder 
+        path("test.txt")
     """
-    mkdir -p testdir
     touch test.txt
-    mv test.txt testdir/
     """
 }
 
 workflow {
-    MOVE_FILE()
-    MOVE_FILE_DIR()
+    READ_FILE(params.infile)
+    WRITE_FILE()
 }
