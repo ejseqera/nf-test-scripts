@@ -1,5 +1,5 @@
 process READ_FILE {
-
+    
     input:
         path input
     
@@ -24,6 +24,8 @@ process WRITE_FILE {
 }
 
 workflow {
+    log.info("The secret in Workflow is: ${secrets.ESHA_SECRET}")
+
     READ_FILE(params.infile)
     WRITE_FILE()
 }
