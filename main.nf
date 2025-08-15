@@ -8,8 +8,8 @@ process FOO {
     """                                                                            
     #!/usr/bin/env bash                                                            
     ##  testing the secret variables                                                      
-    echo \$USERNAME                                                                
-    echo \$PASSWORD                                                                
+    echo \$ALT_USER                                                                
+    echo \$ALT_PASS                                                                
     """                                                                                                                                                      
 }                                                                                  
                                                                                    
