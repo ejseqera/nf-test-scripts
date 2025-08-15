@@ -6,7 +6,6 @@ process FOO {
                                                                                    
     script:                                                                        
     """                                                                            
-    #!/usr/bin/env bash                                                            
     ##  testing the secret variables                                                      
     echo \$ALT_USER                                                                
     echo \$ALT_PASS                                                                
