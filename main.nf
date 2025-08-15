@@ -1,8 +1,8 @@
 process FOO {                                                                      
     debug true                                                                     
                                                                                    
-    secret 'USERNAME'                                                              
-    secret 'PASSWORD'                                                              
+    secret 'ALT_USER'                                                              
+    secret 'ALT_PASS'                                                              
                                                                                    
     script:                                                                        
     """                                                                            
