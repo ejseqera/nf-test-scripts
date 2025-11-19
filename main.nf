@@ -1,26 +1,20 @@
-process MOVE_FILE {
-     
-    output: 
-        path "renamedtest.txt"
+#!/usr/bin/env nextflow
 
-    """
-    touch test.txt
-    mv test.txt renamedtest.txt
-    """
-}
-
-process MOVE_FILE_DIR {
-
+process GPU_TEST {
+    container 'nvidia/cuda:12.2.0-base-ubuntu22.04'
+    debug true
+    
     output:
-        path("testdir"), type: 'dir', emit: outfolder 
+    stdout
+
+    script:
     """
-    mkdir -p testdir
-    touch test.txt
-    mv test.txt testdir/
+    echo "Testing GPU access..."
+    nvidia-smi
+    echo "GPU test completed successfully!"
     """
 }
 
 workflow {
-    MOVE_FILE()
-    MOVE_FILE_DIR()
+    GPU_TEST | view
 }
