@@ -1,135 +1,96 @@
 #!/usr/bin/env nextflow
 
-/*
- * MRE for https://github.com/nextflow-io/nextflow/issues/7029
- *
- * Reproduces the nf-core/sarek 3.8.1 MultiQC channel hang pattern:
- * collect() never fires after all upstream tasks complete on 26.03.x-edge.
- *
- * Self-contained — no input files needed. Works on any executor.
- *
- * NOTE: Does not reproduce locally (local executor). Must run on cloud
- *       (AWS Batch / Google Batch) to trigger the hang.
- *
- * Run with:
- *   NXF_VER=25.10.4 nextflow run mre-7029.nf -profile cloud    # works: MULTIQC fires
- *   NXF_VER=26.03.0-edge nextflow run mre-7029.nf -profile cloud  # hangs: MULTIQC never runs
- *
- * The pipeline stalls with:
- *   "No more task to compute -- The following nodes are still active:
- *    [process] MULTIQC  status=ACTIVE  port 0: (value) OPEN"
- */
+// Reproduces sarek's versions + multiqc_files channel construction exactly
+// Key: deeply nested mix chain (empty → mix × N) with topic, then toList → map → collectFile
 
-// ─── Processes ────────────────────────────────────────────────────────────────
-
-process FASTQC {
-    input:  val(sample_id)
+process PROC_A {
+    input: val(s)
     output:
-        path("${sample_id}_fastqc.zip"), emit: zip
-        tuple val(task.process), val('fastqc'), eval('echo 0.12.1'), topic: 'versions'
-    script:
-    """
-    touch ${sample_id}_fastqc.zip
-    """
+        path("${s}_a.txt"), emit: reports
+        tuple val(task.process), val('tool_a'), eval('echo v1.0'), topic: 'versions'
+        tuple val(task.process), val('tool_a'), path("${s}_a.txt"), topic: 'multiqc_files'
+    script: "touch ${s}_a.txt"
 }
 
-process MARKDUPLICATES {
-    input:  val(sample_id)
+process PROC_B {
+    input: val(s)
     output:
-        path("${sample_id}_markdup.txt"), emit: metrics
-        tuple val(task.process), val('picard'), eval('echo 3.1.0'), topic: 'versions'
-    script:
-    """
-    touch ${sample_id}_markdup.txt
-    """
+        path("${s}_b.txt"), emit: reports
+        tuple val(task.process), val('tool_b'), eval('echo v2.0'), topic: 'versions'
+        tuple val(task.process), val('tool_b'), path("${s}_b.txt"), topic: 'multiqc_files'
+    script: "touch ${s}_b.txt"
 }
 
-process BCFTOOLS_STATS {
-    input:  val(sample_id)
+process PROC_C {
+    input: val(s)
     output:
-        path("${sample_id}_bcftools.txt"), emit: stats
-        tuple val(task.process), val('bcftools'), eval('echo 1.18'), topic: 'versions'
-    script:
-    """
-    touch ${sample_id}_bcftools.txt
-    """
+        path("${s}_c.txt"), emit: reports
+        tuple val(task.process), val('tool_c'), eval('echo v3.0'), topic: 'versions'
+        tuple val(task.process), val('tool_c'), path("${s}_c.txt"), topic: 'multiqc_files'
+    script: "touch ${s}_c.txt"
 }
 
 process MULTIQC {
     debug true
-    input:
-        path('multiqc_files/*')
-        val(config)
-    script:
-    """
-    echo "MultiQC ran with: \$(ls multiqc_files/)"
-    """
+    input: path('files/*')
+    script: "echo 'MultiQC done: \$(ls files/)'"
 }
 
-// ─── Sub-workflows ─────────────────────────────────────────────────────────────
-
-workflow FASTQ_PREPROCESS {
+workflow SUB_A {
     take: samples
-    main:
-        FASTQC(samples)
-    emit:
-        reports = FASTQC.out.zip
+    main: PROC_A(samples)
+    emit: reports = PROC_A.out.reports
 }
 
-workflow BAM_QC {
+workflow SUB_B {
     take: samples
-    main:
-        MARKDUPLICATES(samples)
-    emit:
-        reports = MARKDUPLICATES.out.metrics
+    main: PROC_B(samples)
+    emit: reports = PROC_B.out.reports
 }
 
-workflow VCF_QC {
+workflow SUB_C {
     take: samples
-    main:
-        BCFTOOLS_STATS(samples)
-    emit:
-        reports = BCFTOOLS_STATS.out.stats
+    main: PROC_C(samples)
+    emit: reports = PROC_C.out.reports
 }
-
-// ─── Entry workflow ─────────────────────────────────────────────────────────────
-//
-// Mirrors nf-core/sarek 3.8.1 MultiQC channel construction:
-//   https://github.com/nf-core/sarek/blob/3.8.1/workflows/sarek/main.nf#L604-L631
 
 workflow {
-    samples = channel.of('sample1', 'sample2', 'sample3')
+    samples = channel.of('s1', 's2', 's3')
 
-    FASTQ_PREPROCESS(samples)
-    BAM_QC(samples)
-    VCF_QC(samples)
+    SUB_A(samples)
+    SUB_B(samples)
+    SUB_C(samples)
 
-    // Mirror sarek's `reports` channel: start empty, accumulate via mix
-    reports = channel.empty()
-    reports = reports.mix(FASTQ_PREPROCESS.out.reports)
-    reports = reports.mix(BAM_QC.out.reports)
-    reports = reports.mix(VCF_QC.out.reports)
-
-    // Mirror sarek's ch_workflow_summary: value channel → collectFile
-    ch_workflow_summary = channel.value('workflow: sarek\nversion: 3.8.1\n')
-        .collectFile(name: 'workflow_summary_mqc.yaml')
-
-    // Mirror sarek's version_yaml: topic channel → collectFile
+    // Mimic sarek's versions channel accumulated from sub-workflows (they emit via topic)
+    // Then softwareVersionsToYAML does: versions.mix(topic).toList().map{...}.collectFile(...)
     ch_versions = channel.topic('versions')
+        .toList()
+        .map { v -> v.collect { t -> "${t[1]}: ${t[2]}" }.join('\n') }
         .collectFile(name: 'software_versions.yaml', sort: true, newLine: true)
 
-    // Mirror sarek's ch_multiqc_files: accumulated from all sources
-    ch_multiqc_files = channel.empty()
-    ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary)
-    ch_multiqc_files = ch_multiqc_files.mix(ch_versions)
-    ch_multiqc_files = ch_multiqc_files.mix(reports)
-    ch_multiqc_files = ch_multiqc_files.mix(
-        channel.topic('multiqc_files').map { _process, _tool, report -> report }
-    )
+    // Mimic sarek's reports channel: start empty, accumulate
+    reports = channel.empty()
+    reports = reports.mix(SUB_A.out.reports)
+    reports = reports.mix(SUB_B.out.reports)
+    reports = reports.mix(SUB_C.out.reports)
 
-    // The hang: collect() never fires on 26.03.x-edge with cloud executors
-    MULTIQC(
-        ch_multiqc_files.collect(),
-        'multiqc_config.yaml',
+    // Mimic sarek's ch_workflow_summary: value → collectFile
+    ch_summary = channel.value('workflow: test\n')
+        .collectFile(name: 'workflow_summary.yaml')
+
+    // Mimic sarek's methods description: value → collectFile
+    ch_methods = channel.value('methods: test\n')
+        .collectFile(name: 'methods_description.yaml')
+
+    // Mimic sarek's ch_multiqc_files construction (5 mix sources)
+    ch_multiqc = channel.empty()
+    ch_multiqc = ch_multiqc.mix(ch_summary)
+    ch_multiqc = ch_multiqc.mix(ch_versions)
+    ch_multiqc = ch_multiqc.mix(reports)
+    ch_multiqc = ch_multiqc.mix(
+        channel.topic('multiqc_files').map { _p, _t, r -> r }
     )
+    ch_multiqc = ch_multiqc.mix(ch_methods)
+
+    MULTIQC(ch_multiqc.collect())
 }
